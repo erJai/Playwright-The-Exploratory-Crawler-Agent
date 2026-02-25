@@ -26,7 +26,8 @@ async function run() {
 
         // Inject the initial state into the compiled graph
         // We can run the graph synchronously for autonomous execution
-        const config = { recursionLimit: 50 }; // Max 50 steps
+        // We supply a thread_id so the MemorySaver tracks this run
+        const config = { configurable: { thread_id: "test-run" }, recursionLimit: 50 };
 
         let finalState = initialState;
 
@@ -35,10 +36,13 @@ async function run() {
             finalState = await Agent.invoke(initialState, config);
         } catch (error) {
             console.log(`\nLangGraph execution halted: ${error.message}`);
-            // e.message often includes GraphRecursionError
-            // We can extract the latest state if we used a checkpoint or memory hook.
-            // For now, finalState remains initialState, so report will be empty.
-            // In a real implementation we'd use checkpointers to pull the state upon error.
+
+            // Extract the latest state from the checkpointer MemorySaver since the run aborted gracefully
+            const stateSnapshot = await Agent.getState(config);
+            if (stateSnapshot && stateSnapshot.values) {
+                finalState = stateSnapshot.values;
+                console.log("Successfully recovered mid-flight state from MemorySaver!");
+            }
         }
 
         console.log(`\nCrawler finished execution.`);
