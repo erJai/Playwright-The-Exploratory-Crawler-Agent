@@ -9,7 +9,7 @@ export class BrowserHelper {
     }
 
     async init() {
-        this.browser = await chromium.launch({ headless: true });
+        this.browser = await chromium.launch({ headless: false });
         this.context = await this.browser.newContext();
         this.page = await this.context.newPage();
 
@@ -39,7 +39,7 @@ export class BrowserHelper {
 
     async goto(url) {
         if (!this.page) throw new Error("Browser not initialized");
-        await this.page.goto(url, { waitUntil: "domcontentloaded" });
+        await this.page.goto(url, { waitUntil: "load" });
     }
 
     getCurrentUrl() {

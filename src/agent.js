@@ -1,4 +1,4 @@
-import { StateGraph, START, END } from "@langchain/langgraph";
+import { StateGraph, START, END, MemorySaver } from "@langchain/langgraph";
 import { GraphState } from "./state.js";
 import { BrowserHelper } from "./browser.js";
 import { prioritizeElements } from "./curiosity.js";
@@ -174,4 +174,5 @@ workflow.addConditionalEdges("evaluate", (state) => {
 
 workflow.addEdge("act", "observe"); // Loop back
 
-export const Agent = workflow.compile();
+const checkpointer = new MemorySaver();
+export const Agent = workflow.compile({ checkpointer });
